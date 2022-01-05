@@ -1,0 +1,145 @@
+
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Home</title>
+	<script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://reddit.toptipz.xyz/style.css" />
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			<span>Reddit Account Checker</span>
+		</div>
+		<div class="body">
+			<div class="login-div">
+				<input id="username" placeholder="Enter Your Reddit Username"> 
+				<br />
+				<br />
+				<button class="btn" id="login" type="submit">
+					<span>Login</span>
+				</button>
+				<div id="login-result"></div>
+			</div>
+			<div class="header user-info">
+				<p id="user-name">Username: </p>
+				<p id="total-karma">Total Karma: </p>
+				<p id="joined-date">Joined on: </p>
+				<p id="account-age">Account Age: </p>
+			</div>
+			<div class="main-dash">
+				<div id="instructions">
+					<ol>
+						<li>Go to <a href="" id="reddit_link" target="_blank"></a></li>
+						<li>Upvote the post</li>
+					</ol>
+				</div>
+				<button class="btn" id="check-upvote" type="submit">
+				<span> Check My Upvote</span>
+				</button>
+				<div id="result"></div>
+				<div id="resultp">
+					<p></p>
+					<button class="btn" id="copyPcode" type="submit">
+						Copy PCode
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/javascript">
+		//https://t3stapi.herokuapp.com/getRedditUserInfo username
+		//https://t3stapi.herokuapp.com/checkRedditPostUpvote id,username
+		var reddit_link ="redd.it/rwt5dm"
+		
+		var reddit_linkP = reddit_link.split("/")
+		$(document).ready(function(){
+			$(".user-info").hide()
+			$(".main-dash").hide()
+			$("#resultp").hide()
+			$("#login").click(function(){
+				$("#login").text("Please Wait . . .")
+				var uname = $("#username").val();
+				var datat = '{"username":"'+uname+'"}';
+				$.ajax({
+					url: "https://t3stapi.herokuapp.com/getRedditUserInfo",
+					cache: false,
+					type:'POST',
+					dataType  : 'json',
+					contentType: "application/json; charset=utf-8",
+					data:datat,
+					success: function(resp){
+						if(resp.status == "success"){
+							showResp(resp)
+						}else{
+							$("#login").text("Login")
+							$("#login-result").html("<h4>"+ resp.message +"</h4>")
+						}
+					}
+				});
+			})
+			$("#check-upvote").click(function(){
+				$("#check-upvote").text("Please Wait . . .")
+				var uname = $("#username").val();
+				var datat = '{"username":"'+uname+'","id":"'+reddit_linkP[1]+'"}';
+				$.ajax({
+					url: "https://t3stapi.herokuapp.com/checkRedditPostUpvote",
+					cache: false,
+					type:'POST',
+					dataType  : 'json',
+					contentType: "application/json; charset=utf-8",
+					data:datat,
+					success: function(resp){
+						if(resp.status == "success"){
+							$("#check-upvote").hide()
+							$("#result").html('<br><h4>Upvote successful!.</h4>')
+							checkpcode(uname,reddit_linkP[1])
+						}else{
+							$("#check-upvote").text("Check My Upvote")
+							$("#result").html('<br><h4>Your votes are not public.</h4>Go to <a href="https://old.reddit.com/prefs">old.reddit.com/prefs</a> and check <b>make my votes public</b> option.<br>Check <a href="https://i.ibb.co/BN1CT5F/reddit.jpg" target="_blank">this image</a> for more info.<br>Click the above button again once your do this step.')
+						}
+					}
+				});
+			})
+			$("#copyPcode").click(function(){
+				copyToClipboard($("#resultp").find("span"));
+			})
+			function showResp(resp){
+				$(".login-div").hide()
+				$(".user-info").show()
+				$(".main-dash").show()
+				$("#user-name").text("Username: " + resp.username)
+				$("#total-karma").text("Total Karma: " + resp.total_karma)
+				$("#joined-date").text("Joined on: " + resp.joined)
+				$("#account-age").text("Account Age: " + resp.age + " Days")
+				
+				$("#reddit_link").attr("href","https://"+reddit_link);
+				$("#reddit_link").text(reddit_linkP[1]);
+			}
+			function checkpcode(username,linkId){
+				$.ajax({
+					url: "pcode.php?job=af74751ca5e6&worker=7234e029",
+					cache: false,
+					type:'POST',
+					data:{type:'username',username:username,linkid:linkId},
+					success: function(resp){
+						$("#resultp").show()
+						$("#resultp").find("p").html("<b>P-Code : </b><span>"+resp+"</span>")
+					}
+				});
+			}
+			function copyToClipboard(element) {
+				var $temp = $("<input>");
+				$("body").append($temp);
+				$temp.val($(element).text()).select();
+				document.execCommand("copy");
+				$temp.remove();
+				alert("PCode Copied Successfull")
+			}
+		})
+	</script>
+</body>
+</html>
